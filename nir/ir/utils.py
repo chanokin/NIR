@@ -68,16 +68,8 @@ def calculate_conv_output(
 
 def calc_flatten_output(input_shape: Sequence[int], start_dim: int, end_dim: int):
     start_shape = np.array(input_shape[:start_dim]) if start_dim != 0 else []
-    middle_shape = (
-        np.prod(input_shape[start_dim : end_dim + 1])
-        if end_dim != -1
-        else np.prod(input_shape[start_dim:])
-    )
-    end_shape = (
-        np.array(input_shape[end_dim + 1 :])
-        if end_dim != -1 and end_dim != len(input_shape) - 1
-        else []
-    )
+    middle_shape = np.prod(input_shape[start_dim : end_dim + 1]) if end_dim != -1 else np.prod(input_shape[start_dim:])
+    end_shape = np.array(input_shape[end_dim + 1 :]) if end_dim != -1 and end_dim != len(input_shape) - 1 else []
     return np.array(
         [
             *start_shape,

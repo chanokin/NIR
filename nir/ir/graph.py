@@ -33,24 +33,18 @@ class NIRGraph(NIRNode):
 
     @property
     def inputs(self):
-        return {
-            name: node for name, node in self.nodes.items() if isinstance(node, Input)
-        }
+        return {name: node for name, node in self.nodes.items() if isinstance(node, Input)}
 
     @property
     def outputs(self):
-        return {
-            name: node for name, node in self.nodes.items() if isinstance(node, Output)
-        }
+        return {name: node for name, node in self.nodes.items() if isinstance(node, Output)}
 
     @staticmethod
     def from_list(*nodes: NIRNode) -> "NIRGraph":
         """Create a sequential graph from a list of nodes by labelling them after
         indices."""
 
-        if len(nodes) > 0 and (
-            isinstance(nodes[0], list) or isinstance(nodes[0], tuple)
-        ):
+        if len(nodes) > 0 and (isinstance(nodes[0], list) or isinstance(nodes[0], tuple)):
             nodes = [*nodes[0]]
 
         def unique_node_name(node, counts):
@@ -84,20 +78,14 @@ class NIRGraph(NIRNode):
         )
 
     def __post_init__(self):
-        input_node_keys = [
-            k for k, node in self.nodes.items() if isinstance(node, Input)
-        ]
+        input_node_keys = [k for k, node in self.nodes.items() if isinstance(node, Input)]
         self.input_type = (
             {node_key: self.nodes[node_key].input_type for node_key in input_node_keys}
             if len(input_node_keys) > 0
             else None
         )
-        output_node_keys = [
-            k for k, node in self.nodes.items() if isinstance(node, Output)
-        ]
-        self.output_type = {
-            node_key: self.nodes[node_key].output_type for node_key in output_node_keys
-        }
+        output_node_keys = [k for k, node in self.nodes.items() if isinstance(node, Output)]
+        self.output_type = {node_key: self.nodes[node_key].output_type for node_key in output_node_keys}
 
     def to_dict(self) -> Dict[str, Any]:
         ret = super().to_dict()
@@ -125,14 +113,10 @@ class NIRGraph(NIRNode):
             post_node = self.nodes[edge[1]]
 
             # make sure all types are defined
-            undef_out_type = pre_node.output_type is None or any(
-                v is None for v in pre_node.output_type.values()
-            )
+            undef_out_type = pre_node.output_type is None or any(v is None for v in pre_node.output_type.values())
             if undef_out_type:
                 raise ValueError(f"pre node {edge[0]} has no output type")
-            undef_in_type = post_node.input_type is None or any(
-                v is None for v in post_node.input_type.values()
-            )
+            undef_in_type = post_node.input_type is None or any(v is None for v in post_node.input_type.values())
             if undef_in_type:
                 raise ValueError(f"post node {edge[1]} has no input type")
 
@@ -151,9 +135,7 @@ class NIRGraph(NIRNode):
                     post_repr = f"{edge[1]}.input: {post_input_type}"
                     raise ValueError(f"type mismatch: {pre_repr} -> {post_repr}")
             else:
-                raise NotImplementedError(
-                    "multiple input/output types not supported yet"
-                )
+                raise NotImplementedError("multiple input/output types not supported yet")
         return True
 
     def _forward_type_inference(self, debug=True):
@@ -176,9 +158,7 @@ class NIRGraph(NIRNode):
             post_node = self.nodes[post_key]
 
             if isinstance(pre_node, NIRGraph) or isinstance(post_node, NIRGraph):
-                raise NotImplementedError(
-                    "type inference on nested NIR graphs not supported yet"
-                )
+                raise NotImplementedError("type inference on nested NIR graphs not supported yet")
 
             # check if post input_type needs to be defined
             undef_post_input_type = post_node.input_type is None or any(
@@ -195,33 +175,18 @@ class NIRGraph(NIRNode):
             )
             if undef_post_input_type:
                 # define post input_type to be the same as pre output_type
-                print(
-                    f"[warning] {post_key}.input_type undefined, set to {pre_key}.output_type"
-                )
-                post_node.input_type = {
-                    k.replace("output", "input"): v
-                    for k, v in pre_node.output_type.items()
-                }
+                print(f"[warning] {post_key}.input_type undefined, set to {pre_key}.output_type")
+                post_node.input_type = {k.replace("output", "input"): v for k, v in pre_node.output_type.items()}
             elif type_mismatch:
                 # set post input_type to be the same as pre output_type
-                pre_repr = (
-                    f"{pre_key}.output: {np.array(list(pre_node.output_type.values()))}"
-                )
-                post_repr = (
-                    f"{post_key}.input: {np.array(list(post_node.input_type.values()))}"
-                )
+                pre_repr = f"{pre_key}.output: {np.array(list(pre_node.output_type.values()))}"
+                post_repr = f"{post_key}.input: {np.array(list(post_node.input_type.values()))}"
                 print(f"[warning] overwriting {post_repr} with {pre_repr}")
-                post_node.input_type = {
-                    k.replace("output", "input"): v
-                    for k, v in pre_node.output_type.items()
-                }
+                post_node.input_type = {k.replace("output", "input"): v for k, v in pre_node.output_type.items()}
 
             # make sure that output nodes have output_type = input_type
             if isinstance(post_node, Output):
-                post_node.output_type = {
-                    k.replace("input", "output"): v
-                    for k, v in post_node.input_type.items()
-                }
+                post_node.output_type = {k.replace("input", "output"): v for k, v in post_node.input_type.items()}
 
             # check if post output_type needs to be defined
             undef_post_output_type = post_node.output_type is None or any(
@@ -257,20 +222,14 @@ class NIRGraph(NIRNode):
         Assumes that either the input type or the output type of the graph is set.
         Assumes that if A->B, then A.output_type.values() = B.input_type.values()
         """
-        undef_input_type = self.input_type is None or any(
-            v is None for v in self.input_type.values()
-        )
-        undef_output_type = self.output_type is None or any(
-            v is None for v in self.output_type.values()
-        )
+        undef_input_type = self.input_type is None or any(v is None for v in self.input_type.values())
+        undef_output_type = self.output_type is None or any(v is None for v in self.output_type.values())
         if not undef_input_type:
             # forward-mode type inferring
             self._forward_type_inference()
         elif not undef_output_type:
             # backward-mode type inferring
-            raise NotImplementedError(
-                "backward-mode type inference not implemented yet"
-            )
+            raise NotImplementedError("backward-mode type inference not implemented yet")
         else:
             raise ValueError("Either input_type or output_type must be set")
 
@@ -285,14 +244,10 @@ class NIRGraph(NIRNode):
             post_node = self.nodes[edge[1]]
 
             # make sure all types are defined
-            undef_out_type = pre_node.output_type is None or any(
-                v is None for v in pre_node.output_type.values()
-            )
+            undef_out_type = pre_node.output_type is None or any(v is None for v in pre_node.output_type.values())
             if undef_out_type:
                 raise ValueError(f"pre node {edge[0]} has no output type")
-            undef_in_type = post_node.input_type is None or any(
-                v is None for v in post_node.input_type.values()
-            )
+            undef_in_type = post_node.input_type is None or any(v is None for v in post_node.input_type.values())
             if undef_in_type:
                 raise ValueError(f"post node {edge[1]} has no input type")
 
@@ -311,9 +266,7 @@ class NIRGraph(NIRNode):
                     post_repr = f"{edge[1]}.input: {post_input_type}"
                     raise ValueError(f"type mismatch: {pre_repr} -> {post_repr}")
             else:
-                raise NotImplementedError(
-                    "multiple input/output types not supported yet"
-                )
+                raise NotImplementedError("multiple input/output types not supported yet")
         return True
 
     def _forward_type_inference(self, debug=True):
@@ -332,13 +285,15 @@ class NIRGraph(NIRNode):
         seen = set([e[0] for e in ready])
         while len(ready) > 0:
             pre_key, post_key = ready.pop()
+            # print(f"\n\n{pre_key} ==> {post_key}")
+            # print(list(self.nodes.keys()))
             pre_node = self.nodes[pre_key]
             post_node = self.nodes[post_key]
+            # print(f"{pre_key}.input_type{pre_node.input_type}, {pre_key}.output_type {pre_node.output_type}")
+            # print(f"{post_key}.input_type {post_node.input_type}, {post_key}.output_type {post_node.output_type}\n")
 
             if isinstance(pre_node, NIRGraph) or isinstance(post_node, NIRGraph):
-                raise NotImplementedError(
-                    "type inference on nested NIR graphs not supported yet"
-                )
+                raise NotImplementedError("type inference on nested NIR graphs not supported yet")
 
             # check if post input_type needs to be defined
             undef_post_input_type = post_node.input_type is None or any(
@@ -355,32 +310,26 @@ class NIRGraph(NIRNode):
             )
             if undef_post_input_type:
                 # define post input_type to be the same as pre output_type
-                print(
-                    f"[warning] {post_key}.input_type undefined, set to {pre_key}.output_type"
-                )
-                post_node.input_type = {
-                    k.replace("output", "input"): v
-                    for k, v in pre_node.output_type.items()
-                }
+                print(f"[warning] POST {post_key}.input_type undefined, set to {pre_key}.output_type")
+                post_node.input_type = {k.replace("output", "input"): v for k, v in pre_node.output_type.items()}
+
             elif type_mismatch:
                 # set post input_type to be the same as pre output_type
-                pre_repr = (
-                    f"{pre_key}.output: {np.array(list(pre_node.output_type.values()))}"
-                )
-                post_repr = (
-                    f"{post_key}.input: {np.array(list(post_node.input_type.values()))}"
-                )
+                pre_repr = f"{pre_key}.output: {np.array(list(pre_node.output_type.values()))}"
+                post_repr = f"{post_key}.input: {np.array(list(post_node.input_type.values()))}"
                 print(f"[warning] overwriting {post_repr} with {pre_repr}")
-                post_node.input_type = {
-                    k.replace("output", "input"): v
-                    for k, v in pre_node.output_type.items()
-                }
+                post_node.input_type = {k.replace("output", "input"): v for k, v in pre_node.output_type.items()}
 
             # check if post output_type needs to be defined
-            undef_post_output_type = post_node.output_type is None or any(
-                v is None for v in post_node.output_type.values()
+            # print(f"post_node.output_type {post_node.output_type}")
+            undef_post_output_type = (
+                post_node.output_type is None
+                or any(v is None for v in post_node.output_type.values())
+                or len(post_node.output_type) == 0
+                or len(post_node.output_type["output"]) == 0
             )
             if undef_post_output_type:
+                # print("undef_post_output_type")
                 # define post output_type
                 if isinstance(post_node, Conv1d) or isinstance(post_node, Conv2d):
                     if isinstance(post_node, Conv1d):
@@ -405,9 +354,7 @@ class NIRGraph(NIRNode):
                         post_node.kernel_size,
                         post_node.stride,
                     )
-                    output_type = np.array(
-                        [post_node.input_type["input"][0], *output_shape]
-                    )
+                    output_type = np.array([post_node.input_type["input"][0], *output_shape])
                     post_node.output_type = {"output": output_type}
 
                 elif isinstance(post_node, AvgPool2d):
@@ -418,13 +365,11 @@ class NIRGraph(NIRNode):
                         post_node.kernel_size,
                         post_node.stride,
                     )
-                    output_type = np.array(
-                        [post_node.input_type["input"][0], *output_shape]
-                    )
+                    output_type = np.array([post_node.input_type["input"][0], *output_shape])
                     post_node.output_type = {"output": output_type}
 
                 elif isinstance(post_node, Flatten):
-                    print("updateing flatten output")
+                    # print("updating flatten output")
                     post_node.output_type = {
                         "output": calc_flatten_output(
                             post_node.input_type["input"],
@@ -434,9 +379,13 @@ class NIRGraph(NIRNode):
                     }
                     n_inputs = np.prod(post_node.input_type["input"])
                     n_outputs = np.prod(post_node.output_type["output"])
-                    assert (
-                        n_inputs == n_outputs
-                    ), "Flatten must not change the number of elements"
+                    assert n_inputs == n_outputs, "Flatten must not change the number of elements"
+
+                elif not isinstance(post_node, Output):  # haaack!!!
+                    post_node.output_type["output"] = post_node.input_type["input"]
+
+            # print(f"\nEND\t{pre_key}.input_type {pre_node.input_type}, {pre_key}.output_type {pre_node.output_type}")
+            # print(f"END\t{post_key}.input_type {post_node.input_type}, {post_key}.output_type {post_node.output_type}")
 
             seen.add(post_key)
             ready += [e for e in self.edges if e[0] == post_key and e[1] not in seen]
